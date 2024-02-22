@@ -13,7 +13,11 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        //
+        $categories = Category::orderBy('created_at', 'desc')->get();
+
+        return view('admin.category.index', [
+            'categories' => $categories
+        ]);
     }
 
     /**
@@ -29,7 +33,11 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $new_category = new Category();
+        $new_category->title = $request->title;
+        $new_category->save();
+
+        return redirect()->back()->withSuccess('Категория успешно добавлена');
     }
 
     /**

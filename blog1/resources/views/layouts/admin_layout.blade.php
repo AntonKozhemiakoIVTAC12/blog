@@ -72,20 +72,22 @@
 
             <!-- Sidebar Menu -->
             <nav class="mt-2">
-                <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu"
+                    data-accordion="false">
                     <!-- Add icons to the links using the .nav-icon class
-                         with font-awesome or any other icon font library -->
+           with font-awesome or any other icon font library -->
+
                     <li class="nav-item">
-                        <a href={{route('homeAdmin')}} class="nav-link">
+                        <a href="{{ route('homeAdmin') }}" class="nav-link">
                             <i class="nav-icon fas fa-tachometer-alt"></i>
                             <p>
                                 Главная
                             </p>
                         </a>
                     </li>
-                    <li class="nav-item ">
-                        <a href="#" class="nav-link ">
-                            <svg width="15" height="auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M192 32c0 17.7 14.3 32 32 32c123.7 0 224 100.3 224 224c0 17.7 14.3 32 32 32s32-14.3 32-32C512 128.9 383.1 0 224 0c-17.7 0-32 14.3-32 32zm0 96c0 17.7 14.3 32 32 32c70.7 0 128 57.3 128 128c0 17.7 14.3 32 32 32s32-14.3 32-32c0-106-86-192-192-192c-17.7 0-32 14.3-32 32zM96 144c0-26.5-21.5-48-48-48S0 117.5 0 144V368c0 79.5 64.5 144 144 144s144-64.5 144-144s-64.5-144-144-144H128v96h16c26.5 0 48 21.5 48 48s-21.5 48-48 48s-48-21.5-48-48V144z" fill="white"/></svg>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon far fa-newspaper"></i>
                             <p>
                                 Блог
                                 <i class="right fas fa-angle-left"></i>
@@ -93,22 +95,20 @@
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="./index.html" class="nav-link ">
+
                                     <p>Все статьи</p>
-                                </a>
+
                             </li>
                             <li class="nav-item">
-                                <a href="./index.html" class="nav-link ">
-                                    <p>Добавить статью</p>
-                                </a>
-                            </li>
 
+                                    <p>Добавить статью</p>
+
+                            </li>
                         </ul>
                     </li>
-                    <li class="nav-item ">
-                        <a href="#" class="nav-link ">
-                             <svg width="15" height="auto" xmlns ="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M288 64c0 17.7-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32H256c17.7 0 32 14.3 32 32zm0 256c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H256c17.7 0 32 14.3 32 32zM0 192c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 448c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z" fill="white"/></svg>
-
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-align-left"></i>
                             <p>
                                 Категории
                                 <i class="right fas fa-angle-left"></i>
@@ -116,20 +116,20 @@
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="{{route('category.index')}}" class="nav-link ">
+                                <a href="{{ route('category.index') }}" class="nav-link">
                                     <p>Все категории</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{route('category.create')}}" class="nav-link ">
+                                <a href="{{ route('category.create') }}" class="nav-link">
                                     <p>Добавить категорию</p>
                                 </a>
                             </li>
-
                         </ul>
                     </li>
+
                 </ul>
-           </nav>
+            </nav>
             <!-- /.sidebar-menu -->
         </div>
         <!-- /.sidebar -->

@@ -44,7 +44,8 @@ class ArticleController extends Controller
            'content' => $request->input('content'),
            'user_id' => auth()->id(),
        ]);
-        return redirect()->route('articles.index')->with('success', 'Статья успешно создана.');
+        return redirect()->back()->withSuccess('Категория успешно добавлена');
+       //return redirect()->route('articles.index')->with('success', 'Статья успешно создана.');
     }
 
     public function show(Article $article)
