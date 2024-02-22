@@ -6,7 +6,7 @@
 
         <h1 style="color: black;">{{ $article->title }}</h1>
         <p style="color: black;">{{ $article->content }}</p>
-
+        <p style="color: black;">{{ $article->categories }}</p>
         @if ($article->user)
             <p style="color: black;">Автор: {{ $article->user->name }}</p>
         @else

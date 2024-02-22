@@ -95,14 +95,14 @@
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-
+                                <a href="{{ route('articles.index') }}" class="nav-link">
                                     <p>Все статьи</p>
-
+                                </a>
                             </li>
                             <li class="nav-item">
-
+                                <a href="{{ route('articles.create') }}" class="nav-link">
                                     <p>Добавить статью</p>
-
+                                </a>
                             </li>
                         </ul>
                     </li>

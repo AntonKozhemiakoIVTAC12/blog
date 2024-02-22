@@ -6,6 +6,7 @@ use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Models\Category;
 class ArticleController extends Controller
 {
     public function index()
@@ -28,7 +29,10 @@ class ArticleController extends Controller
     }
 
     public function create(){
-        return view('articles.create');
+        $categories = Category::orderBy('created_at', 'DESC')->get();
+        return view('articles.create', [
+            'categories' => $categories
+        ]);
     }
     public function store(Request $request){
 

@@ -17,7 +17,17 @@
             </div>
             <!-- Добавим скрытое поле для передачи user_id -->
             <input type="hidden" name="user_id" value="{{ auth()->id() }}">
-
+            <div class="form-group">
+                <!-- select -->
+                <div class="form-group">
+                    <label>Выберите категорию</label>
+                    <select name="cat_id" class="form-control" required>
+                        @foreach ($categories as $category)
+                            <option value="{{ $category['id'] }}">{{ $category['title'] }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
             <button type="submit" class="btn btn-primary" style="color: white;">Создать статью</button>
             <a href="{{ route('articles.index') }}" class="btn btn-secondary" style="color: black;">Назад к списку</a>
         </form>
