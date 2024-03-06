@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin_layout')
 
 @section('content')
     <div class="container">
@@ -21,6 +21,6 @@
 
 
 
-        <a href="{{ route('articles.index') }}" class="btn btn-secondary" style="color: black;">Назад к списку</a>
+        <a href="{{ route('admin.articles.index') }}" class="btn btn-secondary" style="color: white;">Назад к списку</a>
     </div>
 @endsection

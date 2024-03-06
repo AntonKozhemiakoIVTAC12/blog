@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('articles', function (Blueprint $table) {
             $table->id();
             $table->string('title')->nullable(false); // Поле title теперь обязательное (Not Null)
-            $table->string('slug')->unique();
+            $table->string('slug');
             $table->text('content');
             $table->foreignId('user_id')->constrained(); // связь с таблицей пользователей
             $table->timestamps();

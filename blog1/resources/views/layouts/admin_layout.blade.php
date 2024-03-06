@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Админ-Панель - @yield('title')</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 
     <!-- Google Font: Source Sans Pro -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
@@ -95,12 +96,12 @@
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="{{ route('articles.index') }}" class="nav-link">
+                                <a href="{{ route('admin.articles.index') }}" class="nav-link">
                                     <p>Все статьи</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('articles.create') }}" class="nav-link">
+                                <a href="{{ route('admin.articles.create') }}" class="nav-link">
                                     <p>Добавить статью</p>
                                 </a>
                             </li>
@@ -123,6 +124,23 @@
                             <li class="nav-item">
                                 <a href="{{ route('category.create') }}" class="nav-link">
                                     <p>Добавить категорию</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-users"></i>
+                            <p>
+                                Пользователи
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="{{ route('users.index') }}" class="nav-link">
+                                    <p>Все пользователи</p>
                                 </a>
                             </li>
                         </ul>

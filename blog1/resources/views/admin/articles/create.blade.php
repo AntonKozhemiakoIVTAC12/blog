@@ -1,11 +1,10 @@
-@extends('layouts.app')
-
+@extends('layouts.admin_layout')
 @section('content')
     <div class="container">
         <link rel="stylesheet" href="https://bootstraptema.ru/snippets/style/2015/bootswatch/bootstrap-darkly-v3.3.6.css" media="screen">
         <h1 style="color: black;">Создать статью</h1>
 
-        <form action="{{ route('articles.store') }}" method="post">
+        <form action="{{ route('admin.articles.store') }}" method="post">
             @csrf
             <div class="mb-3">
                 <label for="title" class="form-label" style="color: black;">Заголовок</label>
@@ -29,7 +28,7 @@
                 </div>
             </div>
             <button type="submit" class="btn btn-primary" style="color: white;">Создать статью</button>
-            <a href="{{ route('articles.index') }}" class="btn btn-secondary" style="color: black;">Назад к списку</a>
+            <a href="{{ route('admin.articles.index') }}" class="btn btn-secondary" style="color: white;">Назад к списку</a>
         </form>
     </div>
 @endsection

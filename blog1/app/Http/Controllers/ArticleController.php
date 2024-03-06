@@ -11,7 +11,7 @@ class ArticleController extends Controller
 {
     public function index()
     {// Извлекаем статьи только для текущего аутентифицированного пользователя
-        $articles = Article::where('user_id', auth()->id())->latest()->get();
+        $articles = Article::where('user_id', auth()->id())->latest()->paginate(5);
         //dd($articles);
         return view('articles.index', compact('articles'));
     }
@@ -23,7 +23,7 @@ class ArticleController extends Controller
 
         $articles = Article::where('title', 'like', '%' . $q . '%')
             ->orWhere('content', 'like', '%' . $q . '%')
-            ->get();
+            ->paginate(5);
 
         return view('articles.index', compact('articles', 'q'));
     }
@@ -54,6 +54,7 @@ class ArticleController extends Controller
 
     public function show(Article $article)
     {
+
         return view('articles.show', compact('article'));
     }
 
