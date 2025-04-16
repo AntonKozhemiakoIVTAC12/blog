@@ -90,40 +90,19 @@
                         <a href="#" class="nav-link">
                             <i class="nav-icon far fa-newspaper"></i>
                             <p>
-                                Блог
+                                Документация
                                 <i class="right fas fa-angle-left"></i>
                             </p>
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
                                 <a href="{{ route('admin.articles.index') }}" class="nav-link">
-                                    <p>Все статьи</p>
+                                    <p>Все документация</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('admin.articles.create') }}" class="nav-link">
-                                    <p>Добавить статью</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fas fa-align-left"></i>
-                            <p>
-                                Категории
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{ route('category.index') }}" class="nav-link">
-                                    <p>Все категории</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('category.create') }}" class="nav-link">
-                                    <p>Добавить категорию</p>
+                                <a href="{{ route('articles.create') }}" class="nav-link">
+                                    <p>Добавить документ</p>
                                 </a>
                             </li>
                         </ul>
@@ -196,7 +175,7 @@
 <!-- AdminLTE App -->
 <script src="/admin/dist/js/adminlte.js"></script>
 <!-- AdminLTE for demo purposes -->
-<script src="/admin/dist/js/demo.js"></script>
+{{--<script src="/admin/dist/js/demo.js"></script>--}}
 <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
 <script src="/admin/dist/js/pages/dashboard.js"></script>
 </body>

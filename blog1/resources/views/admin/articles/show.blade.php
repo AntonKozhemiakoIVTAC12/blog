@@ -2,25 +2,70 @@
 
 @section('content')
     <div class="container">
-        <link rel="stylesheet" href="https://bootstraptema.ru/snippets/style/2015/bootswatch/bootstrap-darkly-v3.3.6.css" media="screen">
+        <div class="d-flex justify-content-between mb-4 align-items-start">
+            <div>
+                <h1>{{ $article->title }}</h1>
+                <div class="badge bg-secondary">
+                    Стандарт: {{ $standards[$article->standard] ?? 'Неизвестен' }}
+                </div>
+            </div>
+            <div class="btn-group">
+                <a href="{{ route('articles.edit', $article) }}" class="btn btn-warning">
+                    <i class="fas fa-edit me-2"></i>Редактировать
+                </a>
+                <a href="{{ route('articles.pdf', $article) }}" class="btn btn-primary">
+                    <i class="fas fa-file-pdf me-2"></i>PDF
+                </a>
+            </div>
+        </div>
 
-        <h1 style="color: black;">{{ $article->title }}</h1>
-        <p style="color: black;">{{ $article->content }}</p>
-
-        @if ($article->user)
-            <p style="color: black;">Автор: {{ $article->user->name }}</p>
+        @if($filteredGostData)
+            <div class="accordion" id="documentSections">
+                @foreach($filteredGostData as $key => $value)
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading{{ $loop->index }}">
+                            <button class="accordion-button collapsed" type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#collapse{{ $loop->index }}">
+                                {{ $gostFields[$key] ?? $key }}
+                            </button>
+                        </h2>
+                        <div id="collapse{{ $loop->index }}"
+                             class="accordion-collapse collapse"
+                             data-bs-parent="#documentSections">
+                            <div class="accordion-body">
+                                <div class="document-content">
+                                    {!! nl2br(e($value)) !!}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
         @else
-            <p style="color: black;">Автор неизвестен</p>
+            <div class="alert alert-warning">
+                Документ не содержит данных
+            </div>
         @endif
 
-        @if ($article->created_at)
-            <p style="color: black;">Дата создания: {{ $article->created_at->format('d.m.Y H:i') }}</p>
-        @else
-            <p style="color: black;">Дата создания неизвестна</p>
-        @endif
-
-
-
-        <a href="{{ route('admin.articles.index') }}" class="btn btn-secondary" style="color: white;">Назад к списку</a>
+        <div class="mt-4 card-footer">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-1">
+                        <i class="fas fa-user me-2"></i>
+                        Автор: {{ $article->user->name ?? 'Неизвестен' }}
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-calendar me-2"></i>
+                        Создано: {{ $article->created_at->format('d.m.Y H:i') }}
+                    </p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a href="{{ route('articles.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Назад
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection

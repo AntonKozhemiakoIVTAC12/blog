@@ -2,25 +2,34 @@
 
 @section('content')
     <div class="container">
-        <link rel="stylesheet" href="https://bootstraptema.ru/snippets/style/2015/bootswatch/bootstrap-darkly-v3.3.6.css" media="screen">
+        <div class="d-flex justify-content-between mb-4">
+            <h1>{{ $article->title }}</h1>
+            <div>
+                <a href="{{ route('articles.edit', $article) }}" class="btn btn-warning">Редактировать</a>
+                <a href="{{ route('articles.pdf', $article) }}" class="btn btn-primary">Экспорт в PDF</a>
+            </div>
+        </div>
 
-        <h1 style="color: black;">{{ $article->title }}</h1>
-        <p style="color: black;">{{ $article->content }}</p>
-
-        @if ($article->user)
-            <p style="color: black;">Автор: {{ $article->user->name }}</p>
-        @else
-            <p style="color: black;">Автор неизвестен</p>
+        @if(isset($article->gost_data))
+            @foreach($article->gost_data as $field => $value)
+                @if(!empty($value))
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            {{ $gostFields[$field] ?? $field }}
+                        </div>
+                        <div class="card-body">
+                            {!! nl2br(e($value)) !!}
+                        </div>
+                    </div>
+                @endif
+            @endforeach
         @endif
 
-        @if ($article->created_at)
-            <p style="color: black;">Дата создания: {{ $article->created_at->format('d.m.Y H:i') }}</p>
-        @else
-            <p style="color: black;">Дата создания неизвестна</p>
-        @endif
-
-
-
-        <a href="{{ route('articles.index') }}" class="btn btn-secondary" style="color: black;">Назад к списку</a>
+        <div class="mt-4">
+            <p>Автор: {{ $article->user->name ?? 'Неизвестен' }}</p>
+            <p>Стандарт: {{ $standards[$article->standard] ?? 'Неизвестен' }}</p>
+            <p>Создано: {{ $article->created_at->format('d.m.Y H:i') }}</p>
+            <a href="{{ route('articles.index') }}" class="btn btn-secondary">Назад к списку</a>
+        </div>
     </div>
 @endsection

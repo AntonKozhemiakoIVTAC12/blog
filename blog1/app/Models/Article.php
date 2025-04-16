@@ -9,7 +9,13 @@ use Database\Factories\ArticleFactory;
 class Article extends Model
 {
     use HasFactory;
-    protected $fillable = ['title', 'slug', 'content', 'user_id'];
+    protected $casts = [
+        'gost_data' => 'array', 'components' => 'array'
+    ];
+
+    protected $fillable = [
+        'title', 'gost_data', 'user_id', 'standard', 'components'
+    ];
     protected $factory = ArticleFactory::class;
     public function user()
     {

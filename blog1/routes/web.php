@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\HomeController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\ComponentController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\ArticleAdminController;
@@ -43,8 +44,6 @@ Route::delete('/articles/{article}', [ArticleController::class, 'delete'])->name
 
 
 Route::post('/articles/search', [ArticleController::class, 'postSearch'])->name('articles.search');
-
-
 Route::middleware(['role:admin'])->prefix('admin_panel')->group(function () {
     Route::get('/',[HomeController::class, 'index'])->name('homeAdmin');
 
@@ -53,13 +52,26 @@ Route::middleware(['role:admin'])->prefix('admin_panel')->group(function () {
     Route::resource('admin.articles', ArticleAdminController::class)->parameters(['articles' => 'admin']);
     Route::get('articles/{article}/edit', [ArticleAdminController::class, 'edit'])->name('admin.articles.edit');
     Route::put('articles/{article}', [ArticleAdminController::class, 'update'])->name('admin.articles.update');
-//    Route::get('admin_panel/admin/articles/{article}', [ArticleAdminController::class, 'show'])->name('admin.articles.show');
     Route::get('/articles/{article}', [ArticleAdminController::class, 'show'])->name('admin.articles.show');
 //
     Route::post('/articles/search', [ArticleAdminController::class, 'postSearch'])->name('admin.articles.search');
-//    Route::get('/admin_panel/admin/articles', [ArticleAdminController::class, 'index'])->name('admin.articles.index');
     Route::delete('/articles/{article}', [ArticleAdminController::class, 'destroy'])->name('admin.articles.destroy');
+    Route::get('/articles/{article}/pdf', [ArticleAdminController::class, 'exportPdf'])
+        ->name('articles.pdf');
+
+    Route::get('/get-gost-fields/{standard}', [ArticleAdminController::class, 'getGostFieldsJson']);
+    Route::get('/get-components/{standard}', [ArticleAdminController::class, 'getComponentsJson']);
+    Route::post('/components', [ComponentController::class, 'store'])->name('components.store');
+    Route::get('/components/create', [ComponentController::class, 'create'])->name('components.create');
 });
 
+Route::get('/articles/{article}/pdf', [ArticleController::class, 'exportPdf'])
+    ->name('articles.pdf');
+
+Route::get('/get-gost-fields/{standard}', [ArticleController::class, 'getGostFieldsJson']);
+
+Route::get('/get-components/{standard}', [ArticleController::class, 'getComponentsJson']);
+Route::post('/components', [ComponentController::class, 'store'])->name('components.store');
+Route::get('/components/create', [ComponentController::class, 'create'])->name('components.create');
 
 require __DIR__.'/auth.php';

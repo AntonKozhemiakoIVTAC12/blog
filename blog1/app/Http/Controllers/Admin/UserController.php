@@ -11,7 +11,6 @@ class UserController extends Controller
 {
     public function index()
     {
-        // Получите список всех пользователей
         $users = User::all();
         $users_count = User::all()->count();
 
@@ -20,7 +19,6 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        // Получите список ролей для отображения в форме редактирования
         $roles = Role::all();
 
         return view('admin.users.edit', compact('user', 'roles'));
@@ -28,10 +26,8 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
-        // Обновление данных пользователя
         $user->update($request->all());
 
-        // Обновление ролей пользователя
         $user->syncRoles($request->input('roles', []));
 
         return redirect()->route('users.index')

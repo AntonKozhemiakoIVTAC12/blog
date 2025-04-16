@@ -49,4 +49,9 @@ class User extends Authenticatable
         return $this->hasMany(Article::class)->onDelete('cascade');
     }
 
+    public function components()
+    {
+        return $this->hasMany(Component::class);
+    }
+
 }

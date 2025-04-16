@@ -3,100 +3,113 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
-use Illuminate\Http\Request;
-use App\Models\ArticleAdmin;
-use Illuminate\Support\Str;
+use App\Http\Requests\StoreArticleRequest;
+use App\Http\Requests\UpdateArticleRequest;
 use App\Models\Article;
+use App\Models\Component;
+use App\Traits\GostFieldsTrait;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+
 class ArticleAdminController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    use GostFieldsTrait;
+
+    private array $standards = [
+        'gost34' => 'ГОСТ 34',
+        'gost19' => 'ГОСТ 19',
+        'ieee830' => 'IEEE STD 830-1998',
+        'iso29148' => 'ISO/IEC/IEEE 29148-2011'
+    ];
+
     public function index()
-    {// Извлекаем статьи только для текущего аутентифицированного пользователя
-        $articles = Article::all();
-        //dd($articles);
+    {
+        $articles = Article::with('user')->latest()->paginate(10);
+
         return view('admin.articles.index', compact('articles'));
     }
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function postSearch(Request $request)
+
+    public function create()
     {
-        $q = $request->input('query');
-
-        $articles = Article::where('title', 'like', '%' . $q . '%')
-            ->orWhere('content', 'like', '%' . $q . '%')
-            ->get();
-
-        return view('admin.articles.index', compact('articles', 'q'));
-    }
-    public function create(){
-        $categories = Category::orderBy('created_at', 'DESC')->get();
         return view('admin.articles.create', [
-            'categories' => $categories
+            'standards' => $this->standards,
+            'defaultComponents' => Component::where('standard_key', 'gost34')->get()
         ]);
     }
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request){
 
-        //dd($request->all());
-
-        $request->validate([
-            'title' => 'required',
-            'content' => 'required',
-        ]);
-        Article::create([
-            'title' => $request->input('title'),
-            'slug' => Str::slug($request->input('title')),
-            'content' => $request->input('content'),
-            'user_id' => auth()->id(),
-        ]);
-        return redirect()->back()->withSuccess('Категория успешно добавлена');
-        //return redirect()->route('articles.index')->with('success', 'Статья успешно создана.');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Article $article)
+    public function store(StoreArticleRequest $request)
     {
+        Article::create($request->validated());
 
-        return view('admin.articles.show', compact('article'));
+        return redirect()->route('admin.articles.index');
+    }
+
+    public function update(UpdateArticleRequest $request, Article $article)
+    {
+        $article->update($request->validated());
+
+        return redirect()->route('admin.articles.index')->with('success', 'Документ успешно обновлен.');
     }
 
     public function edit(Article $article)
     {
-        return view('admin.articles.edit', compact('article'));
+        $defaultComponents = Component::where('user_id', auth()->id())
+            ->where('standard_key', 'gost34')
+            ->get();
+
+        return view('admin.articles.edit', [
+            'article' => $article,
+            'standards' => $this->standards,
+            'defaultComponents' => $defaultComponents,
+            'selectedComponents' => $article->gost_data ? array_keys($article->gost_data) : [],
+        ]);
     }
 
-    public function update(Request $request, Article $article)
+    public function show(Article $article)
     {
-//        dd($request->all(), $article);
-        $request -> validate([
-            'title'=>'required',
-            'content'=>'required',
+        $gostFields = $this->getGostFields($article->standard);
+
+        $filteredGostData = [];
+        if ($article->gost_data) {
+            foreach ($article->gost_data as $key => $value) {
+                if (isset($gostFields[$key])) {
+                    $filteredGostData[$key] = $value;
+                }
+            }
+        }
+
+        return view('admin.articles.show', [
+            'article' => $article,
+            'gostFields' => $gostFields,
+            'filteredGostData' => $filteredGostData
+        ]);
+    }
+
+    public function getComponentsJson($standard)
+    {
+        $components = Component::where('standard_key', $standard)
+            ->orderBy('order')
+            ->get();
+
+        return response()->json($components);
+    }
+
+    public function getGostFieldsJson($standard)
+    {
+        return response()->json($this->getGostFields($standard));
+    }
+
+    public function exportPdf(Article $article)
+    {
+        if ($article->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $pdf = Pdf::loadView('articles.pdf', [
+            'article' => $article,
         ]);
 
-        $article->update([
-            'title'=> $request->title,
-            'slug'=> Str::slug($request->title),
-            'content'=> $request->input('content'),
-        ]);
-
-        return redirect()->route('admin.articles.show', ['article' => $article])->with('success', 'Статья успешно обновлена.');
-
-
+        return $pdf->download("{$article->title}.pdf");
     }
-
-
-    public function destroy(Article $article)
-    {
-        $article->delete();
-        return redirect('/admin_panel/admin/articles')->with('success', 'Статья успешно удалена.');
-    }
-
 }
