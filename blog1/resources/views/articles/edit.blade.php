@@ -1,10 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
+    @include('components.head.tinymce-config')
+
     <div class="container-fluid py-4">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
         <style>
             .components-panel {
                 background: #f8f9fa;
@@ -73,7 +76,7 @@
         </style>
 
         <div class="row g-4">
-            <!-- Left Components Panel -->
+            <!-- Левая панель с компонентами -->
             <div class="col-lg-3">
                 <div class="components-panel p-3">
                     <h5 class="mb-3 fw-bold text-primary">
@@ -86,7 +89,9 @@
                     <div class="mb-4">
                         <select id="standardSelector" class="form-select">
                             @foreach($standards as $key => $label)
-                                <option value="{{ $key }}">{{ $label }}</option>
+                                <option value="{{ $key }}" {{ $article->standard === $key ? 'selected' : '' }}>
+                                    {{ $label }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -107,6 +112,21 @@
             <!-- Основная форма редактирования -->
             <div class="col-lg-9">
                 <div class="form-panel">
+                    @if($errors->any())
+                        <div class="alert alert-danger alert-dismissible fade show mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Ошибки валидации:</strong>
+                            </div>
+                            <ul class="mt-2 mb-0">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
                     <form action="{{ route('articles.update', $article) }}" method="POST" id="editForm">
                         @csrf
                         @method('PUT')
@@ -126,19 +146,23 @@
                         </div>
 
                         <!-- Выбранный стандарт -->
-                        <input type="hidden" name="standard" id="selectedStandard" value="{{ $article->standard }}">
+                        <input type="hidden" name="standard" id="selectedStandard" value="{{ old('standard', $article->standard) }}">
 
                         <!-- Контейнер для выбранных компонентов -->
                         <div id="selectedComponents" class="components-container">
                             @if(isset($article->gost_data))
                                 @foreach($article->gost_data as $key => $value)
+                                    @php
+                                        $uniqueId = 'editor-' . md5($key . $loop->index)
+                                    @endphp
                                     <div class="dynamic-field" data-field-key="{{ $key }}">
                                         <i class="fas fa-times remove-component"></i>
                                         <label class="form-label fw-bold mb-3">{{ $key }}</label>
-                                        <textarea class="form-control"
+                                        <textarea id="{{ $uniqueId }}"
+                                                  class="form-control tinymce-editor"
                                                   name="gost_data[{{ $key }}]"
                                                   rows="4"
-                                                  required>{{ $value }}</textarea>
+                                                  required>{{ old("gost_data.$key", $value) }}</textarea>
                                     </div>
                                 @endforeach
                             @endif
@@ -160,13 +184,14 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const standardSelector = document.getElementById('standardSelector');
             const componentsList = document.getElementById('componentsList');
             const selectedComponents = document.getElementById('selectedComponents');
+            const editForm = document.getElementById('editForm');
             const selectedStandard = document.getElementById('selectedStandard');
 
-            // Инициализация Sortable для списка доступных компонентов
+            // Инициализация Sortable
             new Sortable(componentsList, {
                 group: {
                     name: 'shared',
@@ -177,28 +202,28 @@
                 animation: 150,
                 ghostClass: 'ghost',
                 chosenClass: 'chosen',
-                onEnd: function (evt) {
+                onEnd: function(evt) {
                     const componentKey = evt.item.dataset.key;
                     addComponentToForm(componentKey);
                 }
             });
 
-            // Инициализация Sortable для выбранных компонентов
             new Sortable(selectedComponents, {
                 group: 'shared',
                 animation: 150,
                 handle: '.drag-handle',
                 ghostClass: 'ghost',
                 chosenClass: 'chosen',
-                onSort: function (evt) {
+                onSort: function(evt) {
                     updateComponentOrder();
                 }
             });
 
-            // Загрузка компонентов при изменении стандарта
-            standardSelector.addEventListener('change', function () {
+            // Обработчик изменения стандарта
+            standardSelector.addEventListener('change', function() {
                 const standard = this.value;
                 selectedStandard.value = standard;
+
                 fetch(`/get-components/${standard}`)
                     .then(response => response.json())
                     .then(components => {
@@ -213,9 +238,11 @@
                     });
             });
 
-            // Добавление компонента в форму
+            // Функция добавления компонента
             function addComponentToForm(key) {
                 if (document.querySelector(`[data-field-key="${key}"]`)) return;
+
+                const uniqueId = `editor-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
                 const field = document.createElement('div');
                 field.className = 'dynamic-field';
@@ -223,32 +250,85 @@
                 field.innerHTML = `
                     <i class="fas fa-times remove-component"></i>
                     <label class="form-label fw-bold mb-3">${key}</label>
-                    <textarea class="form-control"
+                    <textarea id="${uniqueId}"
+                              class="form-control tinymce-editor"
                               name="gost_data[${key}]"
                               rows="4"
                               required></textarea>
                 `;
 
                 selectedComponents.appendChild(field);
+
+                // Инициализация TinyMCE для нового поля
+                tinymce.init({
+                    selector: `#${uniqueId}`,
+                    plugins: 'advlist autolink lists link image charmap preview anchor pagebreak code visualblocks visualchars fullscreen autoresize',
+                    toolbar: 'undo redo | styleselect | bold italic | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code',
+                    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:16px }',
+                    height: 300,
+                    autoresize_bottom_margin: 50,
+                    images_upload_url: '/upload-image',
+                    automatic_uploads: true,
+                    relative_urls: false,
+                    convert_urls: true,
+                    setup: function(editor) {
+                        editor.on('change', function() {
+                            editor.save();
+                        });
+                    }
+                });
+
                 addRemoveListener(field);
                 updateComponentOrder();
             }
 
-            // Добавление функционала удаления компонента
+            // Обработчик отправки формы
+            editForm.addEventListener('submit', function(e) {
+                tinymce.triggerSave();
+
+                const emptyFields = Array.from(document.querySelectorAll('.dynamic-field textarea'))
+                    .filter(textarea => textarea.value.trim() === '');
+
+                if (emptyFields.length > 0) {
+                    e.preventDefault();
+                    alert('Пожалуйста, заполните все добавленные поля!');
+                    emptyFields[0].focus();
+                    return;
+                }
+            });
+
+            // Функция удаления компонента
             function addRemoveListener(element) {
-                element.querySelector('.remove-component').addEventListener('click', function () {
+                element.querySelector('.remove-component').addEventListener('click', function() {
+                    const editorId = element.querySelector('textarea').id;
+                    tinymce.get(editorId).remove();
                     element.remove();
                     updateComponentOrder();
                 });
             }
 
-            // Обновление скрытого поля с порядком компонентов
-            function updateComponentOrder() {
-                const components = Array.from(selectedComponents.children).map(el => el.dataset.fieldKey);
-                // Здесь можно реализовать отслеживание порядка, если это необходимо
-            }
+            // Инициализация существующих редакторов
+            document.querySelectorAll('.tinymce-editor').forEach(textarea => {
+                tinymce.init({
+                    selector: `#${textarea.id}`,
+                    plugins: 'advlist autolink lists link image charmap preview anchor pagebreak code visualblocks visualchars fullscreen autoresize',
+                    toolbar: 'undo redo | styleselect | bold italic | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code',
+                    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:16px }',
+                    height: 300,
+                    autoresize_bottom_margin: 50,
+                    images_upload_url: '/upload-image',
+                    automatic_uploads: true,
+                    relative_urls: false,
+                    convert_urls: true,
+                    setup: function(editor) {
+                        editor.on('change', function() {
+                            editor.save();
+                        });
+                    }
+                });
+            });
 
-            // Инициализация выбранных компонентов
+            // Восстановление сохраненных данных
             @if(old('components'))
             const savedComponents = @json(old('components'));
             savedComponents.forEach(key => addComponentToForm(key));

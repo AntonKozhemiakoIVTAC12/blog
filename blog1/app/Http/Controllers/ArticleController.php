@@ -114,6 +114,7 @@ class ArticleController extends Controller
         ]);
     }
 
+    // В контроллере
     public function exportPdf(Article $article)
     {
         if ($article->user_id !== auth()->id()) {
@@ -122,6 +123,17 @@ class ArticleController extends Controller
 
         $pdf = Pdf::loadView('articles.pdf', [
             'article' => $article,
+        ]);
+
+        $pdf->setOption([
+            'font_cache' => storage_path('fonts/'),
+            'default_font' => 'dejavu sans',
+            'isRemoteEnabled' => true,
+            'isHtml5ParserEnabled' => true,
+            'isPhpEnabled' => true,
+            'dpi' => 300,
+            'defaultPaperSize' => 'A4',
+            'font_height_ratio' => 0.9
         ]);
 
         return $pdf->download("{$article->title}.pdf");

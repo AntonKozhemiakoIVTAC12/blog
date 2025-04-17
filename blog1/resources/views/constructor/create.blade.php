@@ -28,7 +28,8 @@
             <!-- Key -->
             <div class="mb-3">
                 <label for="key" class="form-label">Ключ (уникальный идентификатор)</label>
-                <input type="text" name="key" id="key" class="form-control" required>
+                <input type="text" name="key" id="key" class="form-control">
+                <small class="text-muted">Если не заполнено, ключ будет сгенерирован автоматически.</small>
             </div>
 
             <!-- Label -->

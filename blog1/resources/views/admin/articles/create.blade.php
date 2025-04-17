@@ -1,11 +1,14 @@
 @extends('layouts.admin_layout')
 @section('content')
+    @include('components.head.tinymce-config')
+
     <div class="container-fluid py-4">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
         <style>
+            /* Ваши существующие стили */
             .components-panel {
                 background: #f8f9fa;
                 border-radius: 12px;
@@ -73,7 +76,7 @@
         </style>
 
         <div class="row g-4">
-            <!-- Left Components Panel -->
+            <!-- Левая панель с компонентами -->
             <div class="col-lg-3">
                 <div class="components-panel p-3">
                     <h5 class="mb-3 fw-bold text-primary">
@@ -104,7 +107,7 @@
                 </div>
             </div>
 
-            <!-- Main Form -->
+            <!-- Основная форма -->
             <div class="col-lg-9">
                 <div class="form-panel">
                     @if($errors->any())
@@ -125,7 +128,7 @@
                     <form action="{{ route('articles.store') }}" method="POST" id="articleForm">
                         @csrf
 
-                        <!-- Document Title -->
+                        <!-- Заголовок документа -->
                         <div class="mb-4">
                             <label for="title" class="form-label fw-bold">
                                 <i class="fas fa-heading me-2"></i>Название документа
@@ -138,16 +141,19 @@
                                    required>
                         </div>
 
-                        <!-- Selected Standard -->
+                        <!-- Скрытое поле для стандарта -->
                         <input type="hidden" name="standard" id="selectedStandard" value="gost34">
 
-                        <!-- Dynamic Fields Container -->
+                        <!-- Контейнер для компонентов -->
                         <div id="selectedComponents" class="components-container">
-                            <!-- Components will be added here -->
+                            <!-- Компоненты будут добавляться здесь -->
                         </div>
 
-                        <!-- Submit Button -->
+                        <!-- Кнопки отправки -->
                         <div class="mt-4 text-end">
+                            <a href="{{ route('admin.articles.index') }}" class="btn btn-secondary btn-lg me-3">
+                                <i class="fas fa-arrow-left me-2"></i>Назад
+                            </a>
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="fas fa-save me-2"></i>Создать документ
                             </button>
@@ -166,7 +172,7 @@
             const form = document.getElementById('articleForm');
             const selectedStandard = document.getElementById('selectedStandard');
 
-            // Initialize Sortable for components list
+            // Инициализация Sortable
             new Sortable(componentsList, {
                 group: {
                     name: 'shared',
@@ -183,7 +189,6 @@
                 }
             });
 
-            // Initialize Sortable for selected components
             new Sortable(selectedComponents, {
                 group: 'shared',
                 animation: 150,
@@ -195,7 +200,7 @@
                 }
             });
 
-            // Load components when standard changes
+            // Обработчик изменения стандарта
             standardSelector.addEventListener('change', function() {
                 const standard = this.value;
                 selectedStandard.value = standard;
@@ -204,54 +209,96 @@
                     .then(response => response.json())
                     .then(components => {
                         componentsList.innerHTML = components.map(component => `
-                            <div class="component-item" data-key="${component.key}">
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-grip-vertical drag-handle"></i>
-                                    <span>${component.label}</span>
-                                </div>
-                            </div>
-                        `).join('');
+                    <div class="component-item" data-key="${component.key}">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-grip-vertical drag-handle"></i>
+                            <span>${component.label}</span>
+                        </div>
+                    </div>
+                `).join('');
                     });
             });
 
-            // Add component to form
+            // Функция добавления компонента
             function addComponentToForm(key) {
                 if (document.querySelector(`[data-field-key="${key}"]`)) return;
+
+                const uniqueId = `editor-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
                 const field = document.createElement('div');
                 field.className = 'dynamic-field';
                 field.dataset.fieldKey = key;
                 field.innerHTML = `
-                    <i class="fas fa-times remove-component"></i>
-                    <label class="form-label fw-bold mb-3">${key}</label>
-                    <textarea class="form-control"
-                              name="gost_data[${key}]"
-                              rows="4"
-                              required></textarea>
-                `;
+            <i class="fas fa-times remove-component"></i>
+            <label class="form-label fw-bold mb-3">${key}</label>
+            <textarea id="${uniqueId}"
+                      class="form-control tinymce-editor"
+                      name="gost_data[${key}]"
+                      rows="4"
+                      required></textarea>
+        `;
 
                 selectedComponents.appendChild(field);
+
+                // Инициализация TinyMCE для нового поля
+                tinymce.init({
+                    selector: `#${uniqueId}`,
+                    plugins: 'advlist autolink lists link image charmap preview anchor pagebreak code visualblocks visualchars fullscreen autoresize',
+                    toolbar: 'undo redo | styleselect | bold italic | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code',
+                    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:16px }',
+                    height: 300,
+                    autoresize_bottom_margin: 50,
+                    images_upload_url: '/upload-image',
+                    automatic_uploads: true,
+                    relative_urls: false,
+                    convert_urls: true,
+                    setup: function(editor) {
+                        editor.on('change', function() {
+                            editor.save();
+                        });
+                    }
+                });
+
                 addRemoveListener(field);
                 updateComponentOrder();
             }
 
-            // Add remove functionality
+            // Обработчик отправки формы
+            form.addEventListener('submit', function(e) {
+                // Синхронизируем все редакторы
+                tinymce.triggerSave();
+
+                // Проверка заполнения полей
+                const emptyFields = Array.from(document.querySelectorAll('.dynamic-field textarea'))
+                    .filter(textarea => textarea.value.trim() === '');
+
+                if (emptyFields.length > 0) {
+                    e.preventDefault();
+                    alert('Пожалуйста, заполните все добавленные поля!');
+                    emptyFields[0].focus();
+                    return;
+                }
+            });
+
+            // Функция удаления компонента
             function addRemoveListener(element) {
                 element.querySelector('.remove-component').addEventListener('click', function() {
+                    const editorId = element.querySelector('textarea').id;
+                    tinymce.get(editorId).remove();
                     element.remove();
                     updateComponentOrder();
                 });
             }
 
-            // Update hidden input with component order
+            // Обновление порядка компонентов
             function updateComponentOrder() {
                 const components = Array.from(selectedComponents.children).map(
                     el => el.dataset.fieldKey
                 );
-                // Here you can implement order tracking if needed
+                // Логика обновления порядка при необходимости
             }
 
-            // Initial setup
+            // Восстановление сохраненных данных
             @if(old('components'))
             const savedComponents = @json(old('components'));
             savedComponents.forEach(key => addComponentToForm(key));
@@ -259,4 +306,3 @@
         });
     </script>
 @endsection
-

@@ -22,7 +22,7 @@ class StoreComponentRequest extends FormRequest
         return [
             'standard_key' => 'required|string|in:gost34,gost19,ieee830,iso29148',
             'key' => [
-                'required',
+                'nullable',
                 'string',
                 Rule::unique('components')->where(function ($query) {
                     return $query->where('user_id', auth()->id());

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreComponentRequest;
 use App\Models\Component;
-use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ComponentController extends Controller
 {
@@ -12,10 +12,11 @@ class ComponentController extends Controller
     {
         return view('constructor.create');
     }
+
     /**
      * Создание нового компонента.
      *
-     * @param Request $request
+     * @param StoreComponentRequest $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function store(StoreComponentRequest $request)
@@ -24,8 +25,27 @@ class ComponentController extends Controller
         $validated['user_id'] = auth()->id();
         $validated['order'] = $validated['order'] ?? 0;
 
+        if (empty($validated['key'])) {
+            $validated['key'] = $this->generateUniqueKey($validated['standard_key']);
+        }
+
         Component::create($validated);
 
-        return redirect()->route('articles.index');
+        return redirect()->route('articles.index')->with('success', 'Компонент успешно создан!');
+    }
+
+    /**
+     * Генерирует уникальный ключ для компонента.
+     *
+     * @param string $standardKey
+     * @return string
+     */
+    protected function generateUniqueKey(string $standardKey): string
+    {
+        do {
+            $key = Str::slug($standardKey . '-' . Str::random(8));
+        } while (Component::where('key', $key)->where('user_id', auth()->id())->exists());
+
+        return $key;
     }
 }
