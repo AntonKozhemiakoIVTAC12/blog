@@ -101,7 +101,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('articles.create') }}" class="nav-link">
+                                <a href="{{ route('admin.articles.create') }}" class="nav-link">
                                     <p>Добавить документ</p>
                                 </a>
                             </li>

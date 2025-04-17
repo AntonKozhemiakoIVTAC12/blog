@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Category;
 use Database\Factories\ArticleFactory;
 class Article extends Model
 {
@@ -16,11 +15,20 @@ class Article extends Model
     protected $fillable = [
         'title', 'gost_data', 'user_id', 'standard', 'components'
     ];
+
     protected $factory = ArticleFactory::class;
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    public function scopeSearch($query, $searchQuery)
+    {
+        if ($searchQuery) {
+            return $query->where('title', 'like', '%' . $searchQuery . '%');
+        }
 
+        return $query;
+    }
 }

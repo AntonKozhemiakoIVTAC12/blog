@@ -23,18 +23,25 @@ class ArticleAdminController extends Controller
         'iso29148' => 'ISO/IEC/IEEE 29148-2011'
     ];
 
-    public function index()
+    public function index(Request $request)
     {
-        $articles = Article::with('user')->latest()->paginate(10);
+        $searchQuery = $request->input('query');
 
-        return view('admin.articles.index', compact('articles'));
+        $articles = Article::where('user_id', auth()->id())
+            ->search($searchQuery)
+            ->latest()
+            ->paginate(5);
+
+        return view('admin.articles.index', compact('articles', 'searchQuery'));
     }
 
     public function create()
     {
         return view('admin.articles.create', [
             'standards' => $this->standards,
-            'defaultComponents' => Component::where('standard_key', 'gost34')->get()
+            'defaultComponents' => Component::where('user_id', auth()->id())
+                ->where('standard_key', 'gost34')
+                ->get()
         ]);
     }
 

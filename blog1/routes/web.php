@@ -54,7 +54,7 @@ Route::middleware(['role:admin'])->prefix('admin_panel')->group(function () {
     Route::put('articles/{article}', [ArticleAdminController::class, 'update'])->name('admin.articles.update');
     Route::get('/articles/{article}', [ArticleAdminController::class, 'show'])->name('admin.articles.show');
 //
-    Route::post('/articles/search', [ArticleAdminController::class, 'postSearch'])->name('admin.articles.search');
+    Route::post('/articles/search', [ArticleController::class, 'search'])->name('admin.articles.search');
     Route::delete('/articles/{article}', [ArticleAdminController::class, 'destroy'])->name('admin.articles.destroy');
     Route::get('/articles/{article}/pdf', [ArticleAdminController::class, 'exportPdf'])
         ->name('articles.pdf');
@@ -73,5 +73,6 @@ Route::get('/get-gost-fields/{standard}', [ArticleController::class, 'getGostFie
 Route::get('/get-components/{standard}', [ArticleController::class, 'getComponentsJson']);
 Route::post('/components', [ComponentController::class, 'store'])->name('components.store');
 Route::get('/components/create', [ComponentController::class, 'create'])->name('components.create');
+Route::post('/articles/search', [ArticleController::class, 'search'])->name('articles.search');
 
 require __DIR__.'/auth.php';

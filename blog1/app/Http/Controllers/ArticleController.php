@@ -8,6 +8,7 @@ use App\Models\Article;
 use App\Models\Component;
 use App\Traits\GostFieldsTrait;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 
 class ArticleController extends Controller
 {
@@ -19,11 +20,16 @@ class ArticleController extends Controller
         'ieee830' => 'IEEE STD 830-1998',
         'iso29148' => 'ISO/IEC/IEEE 29148-2011'
     ];
-    public function index()
+    public function index(Request $request)
     {
-        $articles = Article::where('user_id', auth()->id())->latest()->paginate(5);
+        $searchQuery = $request->input('query');
 
-        return view('articles.index', compact('articles'));
+        $articles = Article::where('user_id', auth()->id())
+            ->search($searchQuery)
+            ->latest()
+            ->paginate(5);
+
+        return view('articles.index', compact('articles', 'searchQuery'));
     }
 
     public function create()

@@ -50,12 +50,12 @@
         </style>
 
         <div class="search-form">
-            <form action="{{ route('articles.search') }}" method="post" class="input-group">
-                @csrf
+            <form action="{{ route('articles.index') }}" method="GET" class="input-group">
                 <input type="text"
                        name="query"
                        class="form-control search-input"
-                       placeholder="Поиск в документации...">
+                       placeholder="Поиск в документации..."
+                       value="{{ request('query') }}">
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-search"></i> Поиск
                 </button>
@@ -70,6 +70,12 @@
                 <i class="fas fa-plus-circle me-2"></i>Создать документ
             </a>
         </div>
+
+        @if(request('query'))
+            <div class="alert alert-info">
+                Результаты поиска для: <strong>{{ request('query') }}</strong>
+            </div>
+        @endif
 
         @forelse ($articles as $article)
             <div class="doc-card mb-4">
