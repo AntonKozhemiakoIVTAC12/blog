@@ -70,6 +70,18 @@ class ArticleController extends Controller
         return redirect()->route('articles.index')->with('success', 'Документ успешно обновлен.');
     }
 
+    public function destroy(Article $article)
+    {
+        if ($article->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $article->delete();
+
+        return redirect()->route('articles.index')
+            ->with('success', 'Документ успешно удален');
+    }
+
     public function getGostFieldsJson($standard)
     {
         return response()->json($this->getGostFields($standard));

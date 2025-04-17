@@ -105,7 +105,7 @@
                             <i class="fas fa-edit me-2"></i>Редактировать
                         </a>
 
-                        <form action="{{ route('articles.delete', $article->id) }}"
+                        <form action="{{ route('articles.destroy', $article->id) }}"
                               method="POST"
                               class="d-inline">
                             @csrf
@@ -127,7 +127,7 @@
         @endforelse
 
         <div class="pagination-wrapper">
-            {{ $articles->links() }}
+            {{ $articles->links('pagination::bootstrap-5') }}
         </div>
     </div>
 
