@@ -10,18 +10,24 @@
             </div>
         </div>
 
-        @if(isset($article->gost_data))
-            @foreach($article->gost_data as $field => $value)
-                @if(!empty($value))
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            {{ $gostFields[$field] ?? $field }}
-                        </div>
-                        <div class="card-body">
-                            {!! nl2br(e($value)) !!}
-                        </div>
-                    </div>
-                @endif
+        @if(isset($article->gost_data) && is_array($article->gost_data))
+            @foreach($article->gost_data as $item)
+                @php
+                    // Проверяем, есть ли у элемента ключ и контент
+                    $key = $item['key'] ?? 'Без названия';
+                    $content = $item['content'] ?? '';
+                    $uniqueId = 'editor-' . md5($key . $loop->index);
+                @endphp
+
+                <div class="dynamic-field" data-field-key="{{ $key }}">
+                    <i class="fas fa-times remove-component"></i>
+                    <label class="form-label fw-bold mb-3">{{ $key }}</label>
+                    <textarea id="{{ $uniqueId }}"
+                              class="form-control tinymce-editor"
+                              name="gost_data[{{ $key }}][]"
+                              rows="4"
+                              required>{{ old("gost_data.$key.$loop->index", $content) }}</textarea>
+                </div>
             @endforeach
         @endif
 

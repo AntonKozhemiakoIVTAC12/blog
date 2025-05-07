@@ -95,27 +95,15 @@
                     </div>
 
                     <div class="action-btns d-flex align-items-center">
-                        <a href="{{ route('articles.show', $article->id) }}"
+                        <a href="{{ route('admin.articles.show', $article->id) }}"
                            class="btn btn-primary">
                             <i class="fas fa-eye me-2"></i>Просмотр
                         </a>
 
-                        <a href="{{ route('articles.edit', $article->id) }}"
+                        <a href="{{ route('admin.articles.edit', $article->id) }}"
                            class="btn btn-warning">
                             <i class="fas fa-edit me-2"></i>Редактировать
                         </a>
-
-                        <form action="{{ route('articles.delete', $article->id) }}"
-                              method="POST"
-                              class="d-inline">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit"
-                                    class="btn btn-danger"
-                                    onclick="return confirm('Вы уверены? Документ будет удалён безвозвратно.')">
-                                <i class="fas fa-trash-alt me-2"></i>Удалить
-                            </button>
-                        </form>
                     </div>
                 </div>
             </div>

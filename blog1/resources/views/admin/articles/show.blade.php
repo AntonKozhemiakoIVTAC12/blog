@@ -2,70 +2,40 @@
 
 @section('content')
     <div class="container">
-        <div class="d-flex justify-content-between mb-4 align-items-start">
+        <div class="d-flex justify-content-between mb-4">
+            <h1>{{ $article->title }}</h1>
             <div>
-                <h1>{{ $article->title }}</h1>
-                <div class="badge bg-secondary">
-                    Стандарт: {{ $standards[$article->standard] ?? 'Неизвестен' }}
-                </div>
-            </div>
-            <div class="btn-group">
-                <a href="{{ route('articles.edit', $article) }}" class="btn btn-warning">
-                    <i class="fas fa-edit me-2"></i>Редактировать
-                </a>
-                <a href="{{ route('articles.pdf', $article) }}" class="btn btn-primary">
-                    <i class="fas fa-file-pdf me-2"></i>PDF
-                </a>
+                <a href="{{ route('articles.edit', $article) }}" class="btn btn-warning">Редактировать</a>
+                <a href="{{ route('articles.pdf', $article) }}" class="btn btn-primary">Экспорт в PDF</a>
             </div>
         </div>
 
-        @if($filteredGostData)
-            <div class="accordion" id="documentSections">
-                @foreach($filteredGostData as $key => $value)
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="heading{{ $loop->index }}">
-                            <button class="accordion-button collapsed" type="button"
-                                    data-bs-toggle="collapse"
-                                    data-bs-target="#collapse{{ $loop->index }}">
-                                {{ $gostFields[$key] ?? $key }}
-                            </button>
-                        </h2>
-                        <div id="collapse{{ $loop->index }}"
-                             class="accordion-collapse collapse"
-                             data-bs-parent="#documentSections">
-                            <div class="accordion-body">
-                                <div class="document-content">
-                                    {!! nl2br(e($value)) !!}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        @else
-            <div class="alert alert-warning">
-                Документ не содержит данных
-            </div>
+        @if(isset($article->gost_data) && is_array($article->gost_data))
+            @foreach($article->gost_data as $item)
+                @php
+                    // Проверяем, есть ли у элемента ключ и контент
+                    $key = $item['key'] ?? 'Без названия';
+                    $content = $item['content'] ?? '';
+                    $uniqueId = 'editor-' . md5($key . $loop->index);
+                @endphp
+
+                <div class="dynamic-field" data-field-key="{{ $key }}">
+                    <i class="fas fa-times remove-component"></i>
+                    <label class="form-label fw-bold mb-3">{{ $key }}</label>
+                    <textarea id="{{ $uniqueId }}"
+                              class="form-control tinymce-editor"
+                              name="gost_data[{{ $key }}][]"
+                              rows="4"
+                              required>{{ old("gost_data.$key.$loop->index", $content) }}</textarea>
+                </div>
+            @endforeach
         @endif
 
-        <div class="mt-4 card-footer">
-            <div class="row">
-                <div class="col-md-6">
-                    <p class="mb-1">
-                        <i class="fas fa-user me-2"></i>
-                        Автор: {{ $article->user->name ?? 'Неизвестен' }}
-                    </p>
-                    <p class="mb-0">
-                        <i class="fas fa-calendar me-2"></i>
-                        Создано: {{ $article->created_at->format('d.m.Y H:i') }}
-                    </p>
-                </div>
-                <div class="col-md-6 text-end">
-                    <a href="{{ route('articles.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>Назад
-                    </a>
-                </div>
-            </div>
+        <div class="mt-4">
+            <p>Автор: {{ $article->user->name ?? 'Неизвестен' }}</p>
+            <p>Стандарт: {{ $standards[$article->standard] ?? 'Неизвестен' }}</p>
+            <p>Создано: {{ $article->created_at->format('d.m.Y H:i') }}</p>
+            <a href="{{ route('articles.index') }}" class="btn btn-secondary">Назад к списку</a>
         </div>
     </div>
 @endsection

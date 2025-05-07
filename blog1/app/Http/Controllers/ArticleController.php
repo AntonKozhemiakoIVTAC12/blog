@@ -54,7 +54,14 @@ class ArticleController extends Controller
 
     public function store(StoreArticleRequest $request)
     {
-        Article::create($request->validated());
+        $data = json_decode($request->gost_data_serialized, true);
+
+        Article::create([
+            'title' => $request->title,
+            'standard' => $request->standard,
+            'user_id' => auth()->id(),
+            'gost_data' => $data,
+        ]);
 
         return redirect()->route('articles.index');
     }
@@ -65,7 +72,14 @@ class ArticleController extends Controller
             abort(403);
         }
 
-        $article->update($request->validated());
+        $data = json_decode($request->gost_data_serialized, true);
+
+        $article->update([
+            'title' => $request->title,
+            'standard' => $request->standard,
+            'user_id' => auth()->id(),
+            'gost_data' => $data,
+        ]);
 
         return redirect()->route('articles.index')->with('success', 'Документ успешно обновлен.');
     }

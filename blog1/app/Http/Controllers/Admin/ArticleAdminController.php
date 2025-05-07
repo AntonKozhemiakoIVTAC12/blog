@@ -27,8 +27,7 @@ class ArticleAdminController extends Controller
     {
         $searchQuery = $request->input('query');
 
-        $articles = Article::where('user_id', auth()->id())
-            ->search($searchQuery)
+        $articles = Article::search($searchQuery)
             ->latest()
             ->paginate(5);
 
@@ -47,23 +46,35 @@ class ArticleAdminController extends Controller
 
     public function store(StoreArticleRequest $request)
     {
-        Article::create($request->validated());
+        $data = json_decode($request->gost_data_serialized, true);
+
+        Article::create([
+            'title' => $request->title,
+            'standard' => $request->standard,
+            'user_id' => auth()->id(),
+            'gost_data' => $data,
+        ]);
 
         return redirect()->route('admin.articles.index');
     }
 
     public function update(UpdateArticleRequest $request, Article $article)
     {
-        $article->update($request->validated());
+        $data = json_decode($request->gost_data_serialized, true);
+
+        $article->update([
+            'title' => $request->title,
+            'standard' => $request->standard,
+            'user_id' => auth()->id(),
+            'gost_data' => $data,
+        ]);
 
         return redirect()->route('admin.articles.index')->with('success', 'Документ успешно обновлен.');
     }
 
     public function edit(Article $article)
     {
-        $defaultComponents = Component::where('user_id', auth()->id())
-            ->where('standard_key', 'gost34')
-            ->get();
+        $defaultComponents = Component::where('standard_key', 'gost34')->get();
 
         return view('admin.articles.edit', [
             'article' => $article,
@@ -96,6 +107,7 @@ class ArticleAdminController extends Controller
     public function getComponentsJson($standard)
     {
         $components = Component::where('standard_key', $standard)
+            ->where('user_id', auth()->id())
             ->orderBy('order')
             ->get();
 
@@ -105,18 +117,5 @@ class ArticleAdminController extends Controller
     public function getGostFieldsJson($standard)
     {
         return response()->json($this->getGostFields($standard));
-    }
-
-    public function exportPdf(Article $article)
-    {
-        if ($article->user_id !== auth()->id()) {
-            abort(403);
-        }
-
-        $pdf = Pdf::loadView('articles.pdf', [
-            'article' => $article,
-        ]);
-
-        return $pdf->download("{$article->title}.pdf");
     }
 }

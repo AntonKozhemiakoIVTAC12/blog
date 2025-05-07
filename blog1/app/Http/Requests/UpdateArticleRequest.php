@@ -25,9 +25,9 @@ class UpdateArticleRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:255',
-            'gost_data' => 'required|array',
+            'gost_data_serialized' => 'required|json',
             'standard' => 'required|in:'.implode(',', array_keys($this->standards)),
-            'user_id' => 'exists:users,id'
+            'user_id' => 'exists:users,id',
         ];
     }
 }

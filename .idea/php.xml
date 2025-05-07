@@ -137,6 +137,11 @@
       <path value="$PROJECT_DIR$/blog1/vendor/dompdf/dompdf" />
       <path value="$PROJECT_DIR$/blog1/vendor/masterminds/html5" />
       <path value="$PROJECT_DIR$/blog1/vendor/barryvdh/laravel-dompdf" />
+      <path value="$PROJECT_DIR$/blog1/vendor/symfony/psr-http-message-bridge" />
+      <path value="$PROJECT_DIR$/blog1/vendor/lee-to/fast-attributes" />
+      <path value="$PROJECT_DIR$/blog1/vendor/lee-to/laravel-package-command" />
+      <path value="$PROJECT_DIR$/blog1/vendor/nyholm/psr7" />
+      <path value="$PROJECT_DIR$/blog1/vendor/moonshine/moonshine" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.1" />

@@ -10,6 +10,9 @@
 
         <style>
             /* Ваши существующие стили */
+            #selectedComponents .component-item {
+                display: none;
+            }
             .components-panel {
                 background: #f8f9fa;
                 border-radius: 12px;
@@ -107,7 +110,7 @@
                     </div>
                 </div>
             </div>
-
+            <input type="hidden" name="component_order" id="componentOrder">
             <!-- Основная форма -->
             <div class="col-lg-9">
                 <div class="form-panel">
@@ -143,6 +146,7 @@
                         </div>
 
                         <!-- Скрытое поле для стандарта -->
+                        <input type="hidden" name="gost_data_serialized" id="gostDataSerialized">
                         <input type="hidden" name="standard" id="selectedStandard" value="gost34">
 
                         <!-- Контейнер для компонентов -->
@@ -166,66 +170,81 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const standardSelector = document.getElementById('standardSelector');
+        document.getElementById('articleForm').addEventListener('submit', function (e) {
+            const components = selectedComponents.querySelectorAll('.dynamic-field');
+            const data = [];
+
+            components.forEach(field => {
+                const key = field.dataset.fieldKey;
+                const editorId = field.querySelector('textarea').id;
+                const content = tinymce.get(editorId).getContent();
+
+                data.push({ key, content });
+            });
+
+            // Записываем в скрытое поле
+            document.getElementById('gostDataSerialized').value = JSON.stringify(data);
+
+            // Убираем старый gost_data из формы, если он есть
+            const gostDataInput = document.querySelector('input[name="gost_data"]');
+            if (gostDataInput) {
+                gostDataInput.remove();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('articleForm').addEventListener('submit', function (e) {
+                const components = selectedComponents.querySelectorAll('.dynamic-field');
+                const data = [];
+
+                components.forEach(field => {
+                    const key = field.dataset.fieldKey;
+                    const editorId = field.querySelector('textarea').id;
+                    const content = tinymce.get(editorId).getContent();
+
+                    data.push({ key, content });
+                });
+
+                // Записываем данные в скрытое поле
+                document.getElementById('gostDataSerialized').value = JSON.stringify(data);
+            });
             const componentsList = document.getElementById('componentsList');
             const selectedComponents = document.getElementById('selectedComponents');
-            const form = document.getElementById('articleForm');
-            const selectedStandard = document.getElementById('selectedStandard');
 
-            // Инициализация Sortable
             new Sortable(componentsList, {
                 group: {
                     name: 'shared',
-                    pull: 'clone',
-                    put: false
+                    pull: 'clone',   // разрешаем клонировать
+                    put: false       // но запрещаем класть обратно
                 },
                 sort: false,
                 animation: 150,
                 ghostClass: 'ghost',
-                chosenClass: 'chosen',
-                onEnd: function(evt) {
-                    const componentKey = evt.item.dataset.key;
-                    addComponentToForm(componentKey);
+                onEnd: function (evt) {
+                    const draggedEl = evt.item;
+                    const componentKey = draggedEl.dataset.key;
+
+                    // ✅ Получаем место, куда бросили
+                    const newIndex = [...selectedComponents.children].indexOf(evt.item);
+
+                    // ✅ Добавляем dynamic-field по нужному индексу
+                    addComponentToForm(componentKey, newIndex);
                 }
             });
 
+            // === Перетаскивание внутри формы ===
             new Sortable(selectedComponents, {
                 group: 'shared',
                 animation: 150,
                 handle: '.drag-handle',
                 ghostClass: 'ghost',
-                chosenClass: 'chosen',
-                onSort: function(evt) {
-                    updateComponentOrder();
-                }
+                chosenClass: 'chosen'
             });
 
-            // Обработчик изменения стандарта
-            standardSelector.addEventListener('change', function() {
-                const standard = this.value;
-                selectedStandard.value = standard;
-
-                fetch(`/get-components/${standard}`)
-                    .then(response => response.json())
-                    .then(components => {
-                        componentsList.innerHTML = components.map(component => `
-                    <div class="component-item" data-key="${component.key}">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-grip-vertical drag-handle"></i>
-                            <span>${component.label}</span>
-                        </div>
-                    </div>
-                `).join('');
-                    });
-            });
-
-            // Функция добавления компонента
-            function addComponentToForm(key) {
-                if (document.querySelector(`[data-field-key="${key}"]`)) return;
-
-                const uniqueId = `editor-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
+            // === Функция добавления компонента по индексу ===
+            function addComponentToForm(key, index = selectedComponents.children.length) {
+                const count = Array.from(selectedComponents.querySelectorAll(`[data-field-key="${key}"]`)).length;
+                const uniqueId = `editor-${key}-${count}`;
                 const field = document.createElement('div');
                 field.className = 'dynamic-field';
                 field.dataset.fieldKey = key;
@@ -234,14 +253,19 @@
             <label class="form-label fw-bold mb-3">${key}</label>
             <textarea id="${uniqueId}"
                       class="form-control tinymce-editor"
-                      name="gost_data[${key}]"
+                      name="gost_data[${key}][]"
                       rows="4"
                       required></textarea>
         `;
 
-                selectedComponents.appendChild(field);
+                // Вставляем по индексу
+                if (index >= 0 && index < selectedComponents.children.length) {
+                    selectedComponents.insertBefore(field, selectedComponents.children[index]);
+                } else {
+                    selectedComponents.appendChild(field);
+                }
 
-                // Инициализация TinyMCE для нового поля
+                // Инициализация TinyMCE
                 tinymce.init({
                     selector: `#${uniqueId}`,
                     plugins: 'advlist autolink lists link image charmap preview anchor pagebreak code visualblocks visualchars fullscreen autoresize',
@@ -253,10 +277,8 @@
                     automatic_uploads: true,
                     relative_urls: false,
                     convert_urls: true,
-                    setup: function(editor) {
-                        editor.on('change', function() {
-                            editor.save();
-                        });
+                    setup: editor => {
+                        editor.on('change', () => editor.save());
                     }
                 });
 
@@ -264,46 +286,25 @@
                 updateComponentOrder();
             }
 
-            // Обработчик отправки формы
-            form.addEventListener('submit', function(e) {
-                // Синхронизируем все редакторы
-                tinymce.triggerSave();
-
-                // Проверка заполнения полей
-                const emptyFields = Array.from(document.querySelectorAll('.dynamic-field textarea'))
-                    .filter(textarea => textarea.value.trim() === '');
-
-                if (emptyFields.length > 0) {
-                    e.preventDefault();
-                    alert('Пожалуйста, заполните все добавленные поля!');
-                    emptyFields[0].focus();
-                    return;
-                }
-            });
-
-            // Функция удаления компонента
+            // === Обработчик удаления ===
             function addRemoveListener(element) {
-                element.querySelector('.remove-component').addEventListener('click', function() {
-                    const editorId = element.querySelector('textarea').id;
-                    tinymce.get(editorId).remove();
+                element.querySelector('.remove-component').addEventListener('click', function () {
+                    const textarea = element.querySelector('textarea');
+                    const editor = tinymce.get(textarea.id);
+                    if (editor) editor.remove();
                     element.remove();
                     updateComponentOrder();
                 });
             }
 
-            // Обновление порядка компонентов
+            // === Обновление порядка ===
             function updateComponentOrder() {
-                const components = Array.from(selectedComponents.children).map(
-                    el => el.dataset.fieldKey
-                );
-                // Логика обновления порядка при необходимости
-            }
+                const order = Array.from(selectedComponents.querySelectorAll('.dynamic-field'))
+                    .filter(el => el.dataset?.fieldKey)
+                    .map(el => el.dataset.fieldKey);
 
-            // Восстановление сохраненных данных
-            @if(old('components'))
-            const savedComponents = @json(old('components'));
-            savedComponents.forEach(key => addComponentToForm(key));
-            @endif
+                console.log("Текущий порядок:", order);
+            }
         });
     </script>
 @endsection

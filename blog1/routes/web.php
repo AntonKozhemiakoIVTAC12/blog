@@ -54,11 +54,13 @@ Route::middleware(['role:admin'])->prefix('admin_panel')->group(function () {
     Route::get('articles/{article}/edit', [ArticleAdminController::class, 'edit'])->name('admin.articles.edit');
     Route::put('articles/{article}', [ArticleAdminController::class, 'update'])->name('admin.articles.update');
     Route::get('/articles/{article}', [ArticleAdminController::class, 'show'])->name('admin.articles.show');
-//
+
     Route::post('/articles/search', [ArticleController::class, 'search'])->name('admin.articles.search');
     Route::delete('/articles/{article}', [ArticleAdminController::class, 'destroy'])->name('admin.articles.destroy');
     Route::get('/articles/{article}/pdf', [ArticleAdminController::class, 'exportPdf'])
         ->name('articles.pdf');
+    Route::delete('articles/{article}', [ArticleController::class, 'destroy'])
+        ->name('admin.articles.destroy');
 
     Route::get('/get-gost-fields/{standard}', [ArticleAdminController::class, 'getGostFieldsJson']);
     Route::get('/get-components/{standard}', [ArticleAdminController::class, 'getComponentsJson']);
