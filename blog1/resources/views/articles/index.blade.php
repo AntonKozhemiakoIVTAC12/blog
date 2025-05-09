@@ -50,15 +50,18 @@
         </style>
 
         <div class="search-form">
-            <form action="{{ route('articles.index') }}" method="GET" class="input-group">
-                <input type="text"
-                       name="query"
-                       class="form-control search-input"
-                       placeholder="Поиск в документации..."
-                       value="{{ request('query') }}">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-search"></i> Поиск
-                </button>
+            <form action="{{ route('articles.index') }}" method="GET">
+                <div class="input-group">
+                    <select name="group_filter" class="form-select" onchange="this.form.submit()">
+                        <option value="">Все группы</option>
+                        @foreach(auth()->user()->groups as $group)
+                            <option value="{{ $group->id }}"
+                                {{ request('group_filter') == $group->id ? 'selected' : '' }}>
+                                {{ $group->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
             </form>
         </div>
 
@@ -66,6 +69,11 @@
             <h2 class="h3 fw-bold text-primary">
                 <i class="fas fa-book me-2"></i>Техническая документация
             </h2>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('groups.index') }}">
+                    <i class="fas fa-users me-2"></i>Группы
+                </a>
+            </li>
             <a href="{{ route('articles.create') }}" class="btn btn-success btn-lg">
                 <i class="fas fa-plus-circle me-2"></i>Создать документ
             </a>
@@ -85,13 +93,22 @@
                     </h3>
 
                     <div class="doc-meta">
+                        @if($article->group)
+                            <span class="me-3">
+            <i class="fas fa-users me-1"></i>{{ $article->group->name }}
+        </span>
+                        @else
+                            <span class="me-3">
+            <i class="fas fa-user me-1"></i>Личный документ
+        </span>
+                        @endif
                         <span class="me-3">
-                            <i class="fas fa-user-tie me-1"></i>{{ $article->user->name }}
-                        </span>
+        <i class="fas fa-user-tie me-1"></i>{{ $article->user->name }}
+    </span>
                         <span>
-                            <i class="fas fa-clock me-1"></i>
-                            {{ $article->created_at->format('d.m.Y H:i') }}
-                        </span>
+        <i class="fas fa-clock me-1"></i>
+        {{ $article->created_at->format('d.m.Y H:i') }}
+    </span>
                     </div>
 
                     <div class="action-btns d-flex align-items-center">
@@ -100,10 +117,9 @@
                             <i class="fas fa-eye me-2"></i>Просмотр
                         </a>
 
-                        <a href="{{ route('articles.edit', $article->id) }}"
-                           class="btn btn-warning">
-                            <i class="fas fa-edit me-2"></i>Редактировать
-                        </a>
+                            <a href="{{ route('articles.edit', $article) }}" class="btn btn-warning">
+                                Редактировать
+                            </a>
 
                         <form action="{{ route('articles.destroy', $article->id) }}"
                               method="POST"

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreArticleRequest extends FormRequest
 {
@@ -27,6 +28,16 @@ class StoreArticleRequest extends FormRequest
             'gost_data_serialized' => 'required|json',
             'standard' => 'required|in:'.implode(',', array_keys($this->standards)),
             'user_id' => 'exists:users,id',
+            'group_id' => 'required|integer'
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            if (!$this->user()->groups()->where('id', $this->group_id)->exists()) {
+                $validator->errors()->add('group_id', 'Вы не состоите в этой группе');
+            }
+        });
     }
 }

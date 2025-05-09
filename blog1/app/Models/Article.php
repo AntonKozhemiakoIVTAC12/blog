@@ -13,7 +13,7 @@ class Article extends Model
     ];
 
     protected $fillable = [
-        'title', 'gost_data', 'user_id', 'standard', 'components'
+        'title', 'gost_data', 'user_id', 'standard', 'components', 'group_id'
     ];
 
     protected $factory = ArticleFactory::class;
@@ -21,6 +21,11 @@ class Article extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function group()
+    {
+        return $this->belongsTo(Group::class);
     }
 
     public function scopeSearch($query, $searchQuery)

@@ -89,7 +89,8 @@
                     <a href="{{ route('components.create') }}" class="btn btn-info btn-lg">
                         <i class="fas fa-cog me-2"></i>Создать компонент
                     </a>
-
+                    <!-- Удаляем выбор группы -->
+                    <input type="hidden" name="group_id" value="{{ auth()->user()->activeGroup()->id }}">
                     <div class="mb-4">
                         <select id="standardSelector" class="form-select">
                             @foreach($standards as $key => $label)
@@ -110,6 +111,7 @@
                     </div>
                 </div>
             </div>
+
             <input type="hidden" name="component_order" id="componentOrder">
             <!-- Основная форма -->
             <div class="col-lg-9">
@@ -128,10 +130,27 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
+                        <div class="col-lg-9">
+                            <div class="form-panel">
 
                     <form action="{{ route('articles.store') }}" method="POST" id="articleForm">
                         @csrf
-
+                        <!-- Блок выбора группы -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-users me-2"></i>Выберите группу
+                            </label>
+                            <select name="group_id" class="form-select" required>
+                                @foreach(auth()->user()->groups as $group)
+                                    <option value="{{ $group->id }}">
+                                        {{ $group->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('group_id')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
                         <!-- Заголовок документа -->
                         <div class="mb-4">
                             <label for="title" class="form-label fw-bold">

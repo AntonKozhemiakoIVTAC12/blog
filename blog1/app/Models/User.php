@@ -54,4 +54,23 @@ class User extends Authenticatable
         return $this->hasMany(Component::class);
     }
 
+    public function groups()
+    {
+        return $this->belongsToMany(Group::class);
+    }
+
+    public function ownedGroups()
+    {
+        return $this->hasMany(Group::class, 'admin_id');
+    }
+
+    public function activeGroup()
+    {
+        return $this->groups()->latest()->first();
+    }
+
+    public function isMemberOf(Group $group)
+    {
+        return $this->groups()->where('group_id', $group->id)->exists();
+    }
 }

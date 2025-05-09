@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Http\Controllers\Admin\ArticleAdminController;
+use Illuminate\Validation\Rule;
 
 class UpdateArticleRequest extends FormRequest
 {

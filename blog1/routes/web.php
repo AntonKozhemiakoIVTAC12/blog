@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\HomeController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ComponentController;
+use App\Http\Controllers\GroupController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\ArticleAdminController;
@@ -33,6 +34,23 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+Route::get('/groups', [GroupController::class, 'index'])->name('groups.index');
+
+// Вступление в группу
+Route::post('/groups/{group}/join', [GroupController::class, 'join'])
+    ->name('groups.join')
+    ->can('join-group', 'group');
+
+Route::get('/groups/create', [GroupController::class, 'create'])->name('groups.create');
+Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
+Route::get('/groups/{group}', [GroupController::class, 'show'])
+    ->name('groups.show');
+Route::delete('/groups/{group}', [GroupController::class, 'destroy'])
+    ->name('groups.destroy')
+    ->middleware('can:manage-group,group');
+Route::get('/groups/{group}/edit', [GroupController::class, 'edit'])->name('groups.edit');
+Route::put('/groups/{group}', [GroupController::class, 'update'])->name('groups.update');
 
 Route::get('/articles', [ArticleController::class, 'index'])->name('articles.index');
 Route::get('/articles/create', [ArticleController::class, 'create'])->name('articles.create');

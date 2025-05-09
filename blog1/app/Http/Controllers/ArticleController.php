@@ -6,6 +6,7 @@ use App\Http\Requests\StoreArticleRequest;
 use App\Http\Requests\UpdateArticleRequest;
 use App\Models\Article;
 use App\Models\Component;
+use App\Models\Group;
 use App\Traits\GostFieldsTrait;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -22,24 +23,75 @@ class ArticleController extends Controller
     ];
     public function index(Request $request)
     {
+        $user = auth()->user();
         $searchQuery = $request->input('query');
+        $groupFilter = $request->input('group_filter');
 
-        $articles = Article::where('user_id', auth()->id())
+        $articles = Article::whereHas('group', function($query) use ($user, $groupFilter) {
+            $query->whereIn('id', $user->groups()->pluck('id'))
+                ->when($groupFilter, function($q) use ($groupFilter) {
+                    $q->where('id', $groupFilter);
+                });
+        })
+            ->with(['user', 'group'])
             ->search($searchQuery)
             ->latest()
-            ->paginate(5);
+            ->paginate(10);
 
         return view('articles.index', compact('articles', 'searchQuery'));
     }
 
+    public function activeGroup()
+    {
+        return $this->groups()->latest()->first();
+    }
+
     public function create()
     {
+        $user = auth()->user();
+
+        $groups = $user->groups()->get();
+        abort_if($groups->isEmpty(), 403, 'Вы не состоите ни в одной группе');
+
         return view('articles.create', [
+            'groups' => $groups,
             'standards' => $this->standards,
             'defaultComponents' => Component::where('user_id', auth()->id())
                 ->where('standard_key', 'gost34')
                 ->get()
         ]);
+    }
+
+    public function store(StoreArticleRequest $request)
+    {
+        $validated = $request->validated();
+
+        Article::create([
+            'title' => $validated['title'],
+            'standard' => $validated['standard'],
+            'user_id' => auth()->id(),
+            'group_id' => $validated['group_id'],
+            'gost_data' => json_decode($validated['gost_data_serialized'], true)
+        ]);
+
+        return redirect()->route('articles.index')
+            ->with('success', 'Документ успешно создан');
+    }
+
+    public function update(UpdateArticleRequest $request, Article $article)
+    {
+        $this->authorize('update', $article);
+
+        $validated = $request->validated();
+
+        $article->update([
+            'title' => $validated['title'],
+            'standard' => $validated['standard'],
+            'gost_data' => json_decode($validated['gost_data_serialized'], true)
+        ]);
+
+        return redirect()->route('articles.index')
+            ->with('success', 'Документ успешно обновлен');
     }
 
     public function getComponentsJson($standard)
@@ -52,44 +104,9 @@ class ArticleController extends Controller
         return response()->json($components);
     }
 
-    public function store(StoreArticleRequest $request)
-    {
-        $data = json_decode($request->gost_data_serialized, true);
-
-        Article::create([
-            'title' => $request->title,
-            'standard' => $request->standard,
-            'user_id' => auth()->id(),
-            'gost_data' => $data,
-        ]);
-
-        return redirect()->route('articles.index');
-    }
-
-    public function update(UpdateArticleRequest $request, Article $article)
-    {
-        if ($article->user_id !== auth()->id()) {
-            abort(403);
-        }
-
-        $data = json_decode($request->gost_data_serialized, true);
-
-        $article->update([
-            'title' => $request->title,
-            'standard' => $request->standard,
-            'user_id' => auth()->id(),
-            'gost_data' => $data,
-        ]);
-
-        return redirect()->route('articles.index')->with('success', 'Документ успешно обновлен.');
-    }
-
     public function destroy(Article $article)
     {
-        if ($article->user_id !== auth()->id()) {
-            abort(403);
-        }
-
+        $this->authorize('delete', $article);
         $article->delete();
 
         return redirect()->route('articles.index')
@@ -103,9 +120,7 @@ class ArticleController extends Controller
 
     public function edit(Article $article)
     {
-        if ($article->user_id !== auth()->id()) {
-            abort(403);
-        }
+        $this->authorize('update', $article);
 
         $defaultComponents = Component::where('user_id', auth()->id())
             ->where('standard_key', 'gost34')
@@ -123,9 +138,7 @@ class ArticleController extends Controller
 
     public function show(Article $article)
     {
-        if ($article->user_id !== auth()->id()) {
-            abort(403);
-        }
+        $this->authorize('view', $article);
 
         $gostFields = $this->getGostFields($article->standard);
 
