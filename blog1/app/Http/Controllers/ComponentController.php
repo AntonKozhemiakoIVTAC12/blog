@@ -29,6 +29,11 @@ class ComponentController extends Controller
             $validated['key'] = $this->generateUniqueKey($validated['standard_key']);
         }
 
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('components/images', 'public');
+            $validated['image'] = $imagePath;
+        }
+
         Component::create($validated);
 
         return redirect()->route('articles.index')->with('success', 'Компонент успешно создан!');

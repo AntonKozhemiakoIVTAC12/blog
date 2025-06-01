@@ -287,17 +287,47 @@
                 // Инициализация TinyMCE
                 tinymce.init({
                     selector: `#${uniqueId}`,
-                    plugins: 'advlist autolink lists link image charmap preview anchor pagebreak code visualblocks visualchars fullscreen autoresize',
-                    toolbar: 'undo redo | styleselect | bold italic | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code',
+                    plugins: 'image advlist autolink lists link charmap preview anchor pagebreak code visualblocks visualchars fullscreen autoresize',
+                    toolbar: 'undo redo | styleselect | bold italic | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | image | code',
                     content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:16px }',
                     height: 300,
                     autoresize_bottom_margin: 50,
-                    images_upload_url: '/upload-image',
-                    automatic_uploads: true,
                     relative_urls: false,
                     convert_urls: true,
+                    images_upload_url: '{{ route("image.upload") }}',
+                    automatic_uploads: true,
+                    file_picker_types: 'image',
                     setup: editor => {
                         editor.on('change', () => editor.save());
+                    },
+                    images_upload_handler: function (blobInfo, progress) {
+                        return new Promise((resolve, reject) => {
+                            const xhr = new XMLHttpRequest();
+                            xhr.open('POST', '{{ route("image.upload") }}');
+
+                            xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name="csrf-token"]').content);
+
+                            xhr.upload.addEventListener('progress', (e) => {
+                                progress(e.loaded / e.total * 100);
+                            });
+
+                            xhr.onload = () => {
+                                if (xhr.status >= 200 && xhr.status < 300) {
+                                    const json = JSON.parse(xhr.responseText);
+                                    resolve(json.location);
+                                } else {
+                                    reject({ message: 'HTTP Error: ' + xhr.status });
+                                }
+                            };
+
+                            xhr.onerror = () => {
+                                reject('Image upload failed');
+                            };
+
+                            const formData = new FormData();
+                            formData.append('image', blobInfo.blob(), blobInfo.filename());
+                            xhr.send(formData);
+                        });
                     }
                 });
 

@@ -36,7 +36,13 @@ class ArticleAdminController extends Controller
 
     public function create()
     {
-        return view('admin.articles.create', [
+        $user = auth()->user();
+
+        $groups = $user->groups()->get();
+        abort_if($groups->isEmpty(), 403, 'Вы не состоите ни в одной группе');
+
+        return view('articles.create', [
+            'groups' => $groups,
             'standards' => $this->standards,
             'defaultComponents' => Component::where('user_id', auth()->id())
                 ->where('standard_key', 'gost34')
@@ -46,13 +52,14 @@ class ArticleAdminController extends Controller
 
     public function store(StoreArticleRequest $request)
     {
-        $data = json_decode($request->gost_data_serialized, true);
+        $validated = $request->validated();
 
         Article::create([
-            'title' => $request->title,
-            'standard' => $request->standard,
+            'title' => $validated['title'],
+            'standard' => $validated['standard'],
             'user_id' => auth()->id(),
-            'gost_data' => $data,
+            'group_id' => $validated['group_id'],
+            'gost_data' => json_decode($validated['gost_data_serialized'], true)
         ]);
 
         return redirect()->route('admin.articles.index');
@@ -60,13 +67,12 @@ class ArticleAdminController extends Controller
 
     public function update(UpdateArticleRequest $request, Article $article)
     {
-        $data = json_decode($request->gost_data_serialized, true);
+        $validated = $request->validated();
 
         $article->update([
-            'title' => $request->title,
-            'standard' => $request->standard,
-            'user_id' => auth()->id(),
-            'gost_data' => $data,
+            'title' => $validated['title'],
+            'standard' => $validated['standard'],
+            'gost_data' => json_decode($validated['gost_data_serialized'], true)
         ]);
 
         return redirect()->route('admin.articles.index')->with('success', 'Документ успешно обновлен.');

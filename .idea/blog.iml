@@ -136,5 +136,6 @@
     <orderEntry type="library" name="bootstrap" level="application" />
     <orderEntry type="library" name="font-awesome" level="application" />
     <orderEntry type="library" name="sortablejs" level="application" />
+    <orderEntry type="library" name="cropperjs" level="application" />
   </component>
 </module>

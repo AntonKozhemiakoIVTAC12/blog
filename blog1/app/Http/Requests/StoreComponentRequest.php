@@ -31,6 +31,7 @@ class StoreComponentRequest extends FormRequest
             'label' => 'required|string|max:255',
             'description' => 'nullable|string',
             'order' => 'nullable|integer|min:1',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
     }
 }

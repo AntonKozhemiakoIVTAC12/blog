@@ -11,14 +11,8 @@
             src: url({{ storage_path('fonts/DejaVuSans.ttf') }}) format('truetype');
         }
 
-        body, div, p, strong, em, span, li {
-            font-family: 'DejaVu Sans', Arial, sans-serif !important;
-        }
-
         body {
-            line-height: 1.6;
-            color: #000000;
-            padding: 20px;
+            font-family: 'DejaVu Sans', sans-serif !important;
         }
 
         .section-header {
@@ -30,26 +24,30 @@
             padding-bottom: 5px;
         }
 
-        .section-content strong {
-            font-weight: 600;
-            color: #2c3e50;
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
-<h1>{{ $article->title }}</h1>
 
 @if(isset($article->gost_data) && is_array($article->gost_data))
     @foreach($article->gost_data as $item)
         @php
-            $key = $item['key'] ?? 'Без названия';
             $content = $item['content'] ?? '';
+
+            $content = str_replace(
+                ['src="/storage', 'src="storage/'],
+                'src="'.public_path('storage').'/',
+                $content
+            );
         @endphp
 
         <div class="section">
-            <div class="section-header">{{ $key }}</div>
             <div class="section-content">
-                {!! htmlspecialchars_decode(html_entity_decode($content, ENT_QUOTES, 'UTF-8'), ENT_QUOTES) !!}
+                {!! $content !!}
             </div>
         </div>
     @endforeach

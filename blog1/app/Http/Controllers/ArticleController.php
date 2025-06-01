@@ -10,6 +10,10 @@ use App\Models\Group;
 use App\Traits\GostFieldsTrait;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpWord\IOFactory;
+use PhpOffice\PhpWord\PhpWord;
+use PhpOffice\PhpWord\Shared\Html;
 
 class ArticleController extends Controller
 {
@@ -36,7 +40,7 @@ class ArticleController extends Controller
             ->with(['user', 'group'])
             ->search($searchQuery)
             ->latest()
-            ->paginate(10);
+            ->paginate(5);
 
         return view('articles.index', compact('articles', 'searchQuery'));
     }
@@ -66,16 +70,46 @@ class ArticleController extends Controller
     {
         $validated = $request->validated();
 
+        $gostData = json_decode($validated['gost_data_serialized'], true);
+
+        $gostData = array_map(function($item) {
+            return [
+                'key' => $item['key'],
+                'content' => str_replace(["\n", "\r"], '', $item['content'] ?? '')
+            ];
+        }, $gostData);
+
         Article::create([
             'title' => $validated['title'],
             'standard' => $validated['standard'],
             'user_id' => auth()->id(),
             'group_id' => $validated['group_id'],
-            'gost_data' => json_decode($validated['gost_data_serialized'], true)
+            'gost_data' => $gostData
         ]);
 
         return redirect()->route('articles.index')
             ->with('success', 'Документ успешно создан');
+    }
+
+    public function upload(Request $request)
+    {
+        try {
+            $request->validate([
+                'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+            ]);
+
+            $path = $request->file('image')->store('public/images');
+            $url = Storage::url($path);
+
+            return response()->json([
+                'location' => $url
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function update(UpdateArticleRequest $request, Article $article)
@@ -84,10 +118,19 @@ class ArticleController extends Controller
 
         $validated = $request->validated();
 
+        $gostData = json_decode($validated['gost_data_serialized'], true);
+
+        $gostData = array_map(function($item) {
+            return [
+                'key' => $item['key'],
+                'content' => str_replace(["\n", "\r"], '', $item['content'] ?? '')
+            ];
+        }, $gostData);
+
         $article->update([
             'title' => $validated['title'],
             'standard' => $validated['standard'],
-            'gost_data' => json_decode($validated['gost_data_serialized'], true)
+            'gost_data' => $gostData
         ]);
 
         return redirect()->route('articles.index')
@@ -123,7 +166,7 @@ class ArticleController extends Controller
         $this->authorize('update', $article);
 
         $defaultComponents = Component::where('user_id', auth()->id())
-            ->where('standard_key', 'gost34')
+            ->where('standard_key', $article->standard)
             ->get();
 
         $selectedComponents = $article->gost_data ? array_keys($article->gost_data) : [];
@@ -166,21 +209,67 @@ class ArticleController extends Controller
             abort(403);
         }
 
+        ini_set('max_execution_time', 300);
+        ini_set('pcre.backtrack_limit', '5000000');
+        ini_set('memory_limit', '1024M');
+
         $pdf = Pdf::loadView('articles.pdf', [
-            'article' => $article,
+            'article' => $article->load('user')
         ]);
 
         $pdf->setOption([
-            'font_cache' => storage_path('fonts/'),
-            'default_font' => 'dejavu sans',
+            'enable_php' => false,
             'isRemoteEnabled' => true,
             'isHtml5ParserEnabled' => true,
-            'isPhpEnabled' => true,
-            'dpi' => 300,
             'defaultPaperSize' => 'A4',
-            'font_height_ratio' => 0.9
+            'dpi' => 96,
+            'fontHeightRatio' => 1,
+            'defaultFont' => 'dejavu sans',
+            'fontDir' => storage_path('fonts/'),
+            'fontCache' => storage_path('fonts/'),
+            'tempDir' => storage_path('app/temp/'),
+            'encoding' => 'UTF-8',
         ]);
 
         return $pdf->download("{$article->title}.pdf");
+    }
+
+    public function exportDocx(Article $article)
+    {
+        if ($article->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $phpWord = new PhpWord();
+        $section = $phpWord->addSection();
+
+        // Добавляем заголовок документа
+        $section->addTitle($article->title, 1);
+
+        // Обрабатываем содержимое статьи
+        if (isset($article->gost_data) && is_array($article->gost_data)) {
+            foreach ($article->gost_data as $item) {
+                $key = $item['key'] ?? 'Без названия';
+                $content = $item['content'] ?? '';
+
+                // Добавляем подзаголовок раздела
+                $section->addTitle($key, 2);
+
+                // Конвертируем HTML в текст для Word
+                $cleanContent = htmlspecialchars_decode(html_entity_decode($content, ENT_QUOTES, 'UTF-8'), ENT_QUOTES);
+
+                Html::addHtml($section, $cleanContent);
+
+                $section->addPageBreak();
+            }
+        }
+
+        $fileName = "{$article->title}.docx";
+        $tempFile = tempnam(sys_get_temp_dir(), 'word') . '.docx';
+
+        $writer = IOFactory::createWriter($phpWord, 'Word2007');
+        $writer->save($tempFile);
+
+        return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
     }
 }

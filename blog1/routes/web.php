@@ -60,6 +60,10 @@ Route::get('/articles/{article}/edit', [ArticleController::class, 'edit'])->name
 Route::put('/articles/{article}', [ArticleController::class, 'update'])->name('articles.update');
 Route::delete('articles/{article}', [ArticleController::class, 'destroy'])
     ->name('articles.destroy');
+Route::post('/upload-image', [ArticleController::class, 'upload'])
+    ->name('image.upload');
+
+Route::get('/articles/{article}/export-docx', [ArticleController::class, 'exportDocx'])->name('articles.export.docx');
 
 
 Route::post('/articles/search', [ArticleController::class, 'postSearch'])->name('articles.search');
@@ -67,7 +71,6 @@ Route::middleware(['role:admin'])->prefix('admin_panel')->group(function () {
     Route::get('/',[HomeController::class, 'index'])->name('homeAdmin');
 
     Route::resource('users', UserController::class);
-    Route::resource('category', CategoryController::class );
     Route::resource('admin.articles', ArticleAdminController::class)->parameters(['articles' => 'admin']);
     Route::get('articles/{article}/edit', [ArticleAdminController::class, 'edit'])->name('admin.articles.edit');
     Route::put('articles/{article}', [ArticleAdminController::class, 'update'])->name('admin.articles.update');

@@ -27,7 +27,7 @@
                     <div class="inner">
                         <h3>{{$article_count}}</h3>
 
-                        <p>Статьи</p>
+                        <p>Документы</p>
                     </div>
                     <div class="icon">
                         <i class="ion ion-bag"></i>

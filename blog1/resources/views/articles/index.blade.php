@@ -47,10 +47,25 @@
                 display: flex;
                 justify-content: center;
             }
+            .search-form form .input-group {
+                min-width: 200px;
+                max-width: 300px;
+            }
         </style>
 
         <div class="search-form">
-            <form action="{{ route('articles.index') }}" method="GET">
+            <form action="{{ route('articles.index') }}" method="GET" class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="input-group flex-grow-1">
+                    <input type="text"
+                           name="query"
+                           class="form-control search-input"
+                           placeholder="Поиск в документации..."
+                           value="{{ request('query') }}">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Поиск
+                </button>
+
                 <div class="input-group">
                     <select name="group_filter" class="form-select" onchange="this.form.submit()">
                         <option value="">Все группы</option>

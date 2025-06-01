@@ -12,7 +12,8 @@ class Component extends Model
         'label',
         'description',
         'order',
-        'user_id'
+        'user_id',
+        'image'
     ];
 
     public function user()

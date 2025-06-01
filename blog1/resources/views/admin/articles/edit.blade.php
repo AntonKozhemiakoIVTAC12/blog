@@ -116,7 +116,7 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('admin.articles.update', $article) }}" method="POST" id="editForm">
+                    <form action="{{ route('articles.update', $article) }}" method="POST" id="editForm">
                         @csrf
                         @method('PUT')
 
@@ -145,7 +145,7 @@
 
                         <!-- Кнопка отправки -->
                         <div class="mt-4 text-end">
-                            <a href="{{ route('admin.articles.index') }}" class="btn btn-secondary btn-lg me-3">
+                            <a href="{{ route('articles.index') }}" class="btn btn-secondary btn-lg me-3">
                                 <i class="fas fa-arrow-left me-2"></i>Назад
                             </a>
                             <button type="submit" class="btn btn-primary btn-lg">

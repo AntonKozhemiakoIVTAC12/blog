@@ -11,7 +11,7 @@
             </div>
         @endif
 
-        <form action="{{ route('components.store') }}" method="POST">
+        <form action="{{ route('components.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <!-- Standard Key -->
@@ -23,13 +23,6 @@
                     <option value="ieee830">IEEE STD 830-1998</option>
                     <option value="iso29148">ISO/IEC/IEEE 29148-2011</option>
                 </select>
-            </div>
-
-            <!-- Key -->
-            <div class="mb-3">
-                <label for="key" class="form-label">Ключ (уникальный идентификатор)</label>
-                <input type="text" name="key" id="key" class="form-control">
-                <small class="text-muted">Если не заполнено, ключ будет сгенерирован автоматически.</small>
             </div>
 
             <!-- Label -->
@@ -44,12 +37,6 @@
                 <textarea name="description" id="description" class="form-control"></textarea>
             </div>
 
-            <!-- Order -->
-            <div class="mb-3">
-                <label for="order" class="form-label">Порядок сортировки</label>
-                <input type="number" name="order" id="order" class="form-control" min="1">
-            </div>
-
             <!-- Submit Button -->
             <a href="{{ route('articles.create') }}" class="btn btn-secondary btn-lg me-3">
                 <i class="fas fa-arrow-left me-2"></i>Назад
@@ -57,4 +44,41 @@
             <button type="submit" class="btn btn-primary btn-lg">Создать компонент</button>
         </form>
     </div>
+    @section('scripts')
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const imageInput = document.getElementById('image');
+                const previewImage = document.getElementById('previewImage');
+                const cropperDiv = document.getElementById('imageCropper');
+                let cropper;
+
+                imageInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+
+                        reader.onload = function(event) {
+                            previewImage.src = event.target.result;
+                            cropperDiv.style.display = 'block';
+
+                            if (cropper) {
+                                cropper.destroy();
+                            }
+
+                            cropper = new Cropper(previewImage, {
+                                aspectRatio: 1,
+                                viewMode: 1,
+                                autoCropArea: 0.8,
+                            });
+                        };
+
+                        reader.readAsDataURL(file);
+                    }
+                });
+            });
+        </script>
+    @endsection
 @endsection

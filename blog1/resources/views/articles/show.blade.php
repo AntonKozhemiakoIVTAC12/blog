@@ -7,26 +7,24 @@
             <div>
                 <a href="{{ route('articles.edit', $article) }}" class="btn btn-warning">Редактировать</a>
                 <a href="{{ route('articles.pdf', $article) }}" class="btn btn-primary">Экспорт в PDF</a>
+                <a href="{{ route('articles.export.docx', $article) }}" class="btn btn-success">
+                    Экспорт в DOCX
+                </a>
             </div>
         </div>
 
         @if(isset($article->gost_data) && is_array($article->gost_data))
             @foreach($article->gost_data as $item)
                 @php
-                    // Проверяем, есть ли у элемента ключ и контент
                     $key = $item['key'] ?? 'Без названия';
                     $content = $item['content'] ?? '';
-                    $uniqueId = 'editor-' . md5($key . $loop->index);
                 @endphp
 
-                <div class="dynamic-field" data-field-key="{{ $key }}">
-                    <i class="fas fa-times remove-component"></i>
-                    <label class="form-label fw-bold mb-3">{{ $key }}</label>
-                    <textarea id="{{ $uniqueId }}"
-                              class="form-control tinymce-editor"
-                              name="gost_data[{{ $key }}][]"
-                              rows="4"
-                              required>{{ old("gost_data.$key.$loop->index", $content) }}</textarea>
+                <div class="mb-4">
+                    <h3 class="fw-bold">{{ $key }}</h3>
+                    <div class="card card-body p-3 bg-light">
+                        {!! $content !!}
+                    </div>
                 </div>
             @endforeach
         @endif
